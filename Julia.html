@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Cleaning</title>
   <style>
+    *, *::before, *::after { box-sizing: border-box; }
     body, input, textarea, select, button { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
     body { font-size:17px; line-height:1.4; background:#f2f2f7; margin:0; padding:0; color:#1c1c1e; }
     header { background:#fff; padding:0 16px; height:64px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #d1c1d6; position:fixed; top:0; left:0; right:0; z-index:10; }
@@ -32,7 +33,7 @@
     .completed { opacity:.5; color:#8e8e93; text-decoration:line-through; }
     .modal, .history-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.4); backdrop-filter:blur(5px); z-index:100; }
     .modal-content, .history-content { background:#fff; border-radius:20px; width:90%; max-width:400px; margin:100px auto; box-shadow:0 10px 30px rgba(0,0,0,.2); }
-    .modal-header, .history-header { padding:14px 16px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #e5eea; }
+    .modal-header, .history-header { padding:14px 16px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #e5e5ea; }
     .modal-header h2, .history-header h2 { margin:0; font-size:20px; font-weight:600; }
     .modal-body { padding:16px; display:flex; flex-direction:column; gap:12px; }
     .history-body { padding:16px; display:flex; flex-direction:column; gap:12px; max-height:60vh; overflow-y:auto; }
