@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Cleaning</title>
+  <style>
+    body, input, textarea, select, button { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+    body { font-size:17px; line-height:1.4; background:#f2f2f7; margin:0; padding:0; color:#1c1c1e; }
+    header { background:#fff; padding:0 16px; height:64px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #d1c1d6; position:fixed; top:0; left:0; right:0; z-index:10; }
+    main { padding:16px; padding-top:80px; max-width:640px; margin:0 auto; }
+    .controls { display:flex; gap:12px; align-items:center; }
+    #toggle-btn { background:#007aff; color:#fff; padding:0 24px; height:56px; font-size:20px; border:none; border-radius:28px; cursor:pointer; transition:background .3s; }
+    #toggle-btn:hover { background:#0051a8; }
+    .btn { background:#007aff; color:#fff; width:48px; height:48px; border:none; border-radius:24px; cursor:pointer; font-size:28px; display:flex; align-items:center; justify-content:center; transition:background .3s; }
+    .btn:hover { background:#0051a8; }
+    .edit-btn { margin-left:8px; background:#d0e7ff; color:#0051a8; }
+    .edit-btn:hover { background:#a0cfff; }
+    .event-list { background:#fff; padding:16px; border-radius:16px; box-shadow:0 2px 8px rgba(0,0,0,0.08); }
+    .event-list ul { list-style:none; margin:0; padding:0; }
+    .event-list li { display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid #e5e5ea; }
+    .event-list li:last-child { border-bottom:none; }
+    .event-info { flex:1; margin-left:12px; }
+    .event-info strong { font-size:17px; }
+    .event-info div { font-size:17px; color:#3c3c4399; }
+    .interval-tag { padding:4px 12px; border-radius:12px; font-size:17px; font-weight:500; cursor:pointer; user-select:none; }
+    .interval-0 { background:#d0e7ff; color:#0051a8; }
+    .interval-1 { background:#80bfff; color:#004080; }
+    .interval-2 { background:#007aff; color:#fff; }
+    .delete-btn { background:none; border:none; color:#ff3b30; font-size:17px; font-weight:600; cursor:pointer; }
+    .check-btn { margin-right:8px; }
+    .completed { opacity:.5; color:#8e8e93; text-decoration:line-through; }
+    .modal, .history-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.4); backdrop-filter:blur(5px); z-index:100; }
+    .modal-content, .history-content { background:#fff; border-radius:20px; width:90%; max-width:400px; margin:100px auto; box-shadow:0 10px 30px rgba(0,0,0,.2); }
+    .modal-header, .history-header { padding:14px 16px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #e5eea; }
+    .modal-header h2, .history-header h2 { margin:0; font-size:20px; font-weight:600; }
+    .modal-body { padding:16px; display:flex; flex-direction:column; gap:12px; }
+    .history-body { padding:16px; display:flex; flex-direction:column; gap:12px; max-height:60vh; overflow-y:auto; }
+    .modal-body input, .modal-body textarea { width:100%; padding:12px; border:none; border-radius:12px; background:#f2f2f7; outline:none; font-size:17px; }
+    .modal-body select { display:none; }
+    .patch-container { display:flex; gap:8px; }
+    .interval-patch { padding:6px 14px; border-radius:12px; font-size:16px; font-weight:500; cursor:pointer; user-select:none; background:#e1e1e6; color:#1c1c1e; }
+    .patch-0 { background:#d0e7ff; color:#0051a8; }
+    .patch-1 { background:#80bfff; color:#004080; }
+    .patch-2 { background:#007aff; color:#fff; }
+    .interval-patch.selected { background:#ff3b30 !important; color:#fff !important; }
+    .modal-footer, .history-footer { padding:12px 16px; display:flex; justify-content:flex-end; }
+    #save-btn, #save-wage-btn { background:#007aff; color:#fff; padding:0 24px; height:56px; font-size:20px; border:none; border-radius:28px; cursor:pointer; transition:background .3s; }
+    #save-btn:hover, #save-wage-btn:hover { background:#0051a8; }
+    #clear-history { background:#ff3b30; color:#fff; padding:0 20px; height:48px; font-size:17px; border:none; border-radius:24px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background .3s; }
+    #clear-history:hover { background:#d32f2b; }
+    .history-list { display:grid; grid-template-columns:1fr; gap:12px; padding:16px; }
+    .history-entry { background:#fff; padding:12px 16px; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.08); }
+    .history-date { font-size:17px; font-weight:600; margin-bottom:4px; }
+    .history-time { font-size:15px; color:#3c3c4399; }
+    .history-entry details { margin-top:8px; }
+    .history-entry summary { cursor:pointer; font-weight:500; }
+    .history-entry ul { list-style:none; margin:4px 0 0 0; padding:0; }
+    .history-entry li { font-size:15px; padding:2px 0; }
+    #monthly-cost { padding:16px; font-size:17px; font-weight:600; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Cleaning</h1>
+    <div class="controls" id="controls">
+      <button id="toggle-btn">Start Cleaning</button>
+      <button id="open-modal" class="btn">+</button>
+      <button id="history-btn" class="btn">📜</button>
+      <button id="settings-btn" class="btn">⚙️</button>
+    </div>
+  </header>
+  <main>
+    <section class="event-list"><ul id="events"></ul></section>
+  </main>
+
+  <!-- New/Edit Modal -->
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modal-title">Neues Ereignis</h2><span id="close-modal">×</span>
+      </div>
+      <div class="modal-body">
+        <input id="title" placeholder="Ereignis-Titel">
+        <textarea id="description" rows="3" placeholder="Kurze Beschreibung"></textarea>
+        <select id="interval">
+          <option value="0">Einmalig</option>
+          <option value="1">Jedes Mal</option>
+          <option value="2">Jedes 2. Mal</option>
+        </select>
+        <div class="patch-container">
+          <span class="interval-patch patch-0" data-val="0">Einmalig</span>
+          <span class="interval-patch patch-1" data-val="1">Jedes Mal</span>
+          <span class="interval-patch patch-2" data-val="2">Jedes 2. Mal</span>
+        </div>
+      </div>
+      <div class="modal-footer"><button id="save-btn">Speichern</button></div>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settings-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header"><h2>Stundenlohn einstellen</h2><span id="close-settings">×</span></div>
+      <div class="modal-body"><input id="wage-input" type="number" step="0.01" placeholder="Stundenlohn in €"></div>
+      <div class="modal-footer"><button id="save-wage-btn">Speichern</button></div>
+    </div>
+  </div>
+
+  <!-- History Modal -->
+  <div id="history-modal" class="history-modal">
+    <div class="history-content">
+      <div class="history-header"><h2>History</h2><span id="close-history">×</span></div>
+      <div class="history-body" id="history-list"></div>
+      <div class="history-footer"><button id="clear-history">Lösche History</button></div>
+    </div>
+  </div>
+
+  <script>
+    const controls = document.getElementById('controls');
+    const toggleBtn = document.getElementById('toggle-btn');
+    const openModalBtn = document.getElementById('open-modal');
+    const historyBtn = document.getElementById('history-btn');
+    const settingsBtn = document.getElementById('settings-btn');
+    const modal = document.getElementById('modal');
+    const settingsModal = document.getElementById('settings-modal');
+    const historyModal = document.getElementById('history-modal');
+    const closeModal = document.getElementById('close-modal');
+    const closeSettings = document.getElementById('close-settings');
+    const closeHistory = document.getElementById('close-history');
+    const saveBtn = document.getElementById('save-btn');
+    const saveWageBtn = document.getElementById('save-wage-btn');
+    const clearHistory = document.getElementById('clear-history');
+    const eventsList = document.getElementById('events');
+    const titleInput = document.getElementById('title');
+    const descInput = document.getElementById('description');
+    const ivSelect = document.getElementById('interval');
+    const patches = document.querySelectorAll('.interval-patch');
+    const wageInput = document.getElementById('wage-input');
+    let active = false, count = 0, editingLi = null;
+    patches.forEach(p => p.addEventListener('click', () => { ivSelect.value = p.dataset.val; patches.forEach(x=>x.classList.remove('selected')); p.classList.add('selected'); }));
+    function loadHistory(){ return JSON.parse(localStorage.getItem('toggleHistory')||'[]'); }
+    function saveHistory(h){ localStorage.setItem('toggleHistory', JSON.stringify(h)); }
+    function resetModal(){ titleInput.value=''; descInput.value=''; ivSelect.value='0'; patches.forEach(x=>x.classList.remove('selected')); document.querySelector('.patch-0').classList.add('selected'); editingLi=null; modal.style.display='block'; }
+    openModalBtn.onclick = ()=>{ resetModal(); modal.style.display='block'; };
+    closeModal.onclick = ()=> modal.style.display='none';
+    saveBtn.onclick = ()=>{ const t=titleInput.value.trim(),d=descInput.value.trim(); if(!t||!d) return alert('Bitte fülle alle Felder aus!'); const iv=parseInt(ivSelect.value), li=newLi(t,d,iv); editingLi? eventsList.replaceChild(li,editingLi): eventsList.append(li); modal.style.display='none'; };
+    function newLi(t,d,iv){ const li=document.createElement('li'); li.dataset.interval=iv; li.innerHTML=`<span class="check-btn"><input type="checkbox" style="display:none"></span><div class="event-info"><strong>${t}</strong><div>${d}</div></div><span class="interval-tag interval-${iv}">${iv===0?'Einmalig':iv===1?'Jedes Mal':'Jedes 2. Mal'}</span><button class="delete-btn">Löschen</button><button class="edit-btn btn">✏️</button>`;
+      li.querySelector('.delete-btn').onclick=()=>li.remove(); li.querySelector('.edit-btn').onclick=()=>{ editingLi=li; titleInput.value=li.querySelector('strong').textContent; descInput.value=li.querySelector('div').textContent; ivSelect.value=li.dataset.interval; patches.forEach(x=>x.classList.remove('selected')); document.querySelector(`.patch-${li.dataset.interval}`).classList.add('selected'); modal.style.display='block'; };
+      li.querySelector('.check-btn input').onchange=e=>li.classList.toggle('completed',e.target.checked);
+      li.querySelector('.interval-tag').onclick=()=>{ const c=parseInt(li.dataset.interval),n=(c+1)%3; li.dataset.interval=n; const tag=li.querySelector('.interval-tag'); tag.textContent=n===0?'Einmalig':n===1?'Jedes Mal':'Jedes 2. Mal'; tag.className=`interval-tag interval-${n}`; };
+      return li;
+    }
+    settingsBtn.onclick=()=>{ wageInput.value=localStorage.getItem('hourlyWage')||''; settingsModal.style.display='block'; };
+    closeSettings.onclick=()=>settingsModal.style.display='none';
+    saveWageBtn.onclick=()=>{ const w=parseFloat(wageInput.value); if(isNaN(w)||w<0) return alert('Bitte gültigen Stundenlohn!'); localStorage.setItem('hourlyWage',w.toFixed(2)); settingsModal.style.display='none'; };
+    toggleBtn.onclick=()=>{ active=!active; toggleBtn.textContent=active?'Stop Cleaning':'Start Cleaning'; if(active) count++; const h=loadHistory(); h.push({action:active?'start':'stop',time:new Date().toISOString(),count,statuses:[]}); saveHistory(h);
+      document.querySelectorAll('#events li').forEach(li=>{ const iv=parseInt(li.dataset.interval), show=active? iv===1 || count%iv===1 : true; li.style.display=show?'flex':'none'; li.querySelector('input').style.display=active?'inline-block':'none'; });
+    };
+    historyBtn.onclick=()=>{ renderHistory(); historyModal.style.display='block'; };
+    closeHistory.onclick=()=>historyModal.style.display='none'; clearHistory.onclick=()=>{ saveHistory([]); renderHistory(); };
+    function renderHistory(){ const data=loadHistory(), list=document.getElementById('history-list'); list.innerHTML=''; const wage=parseFloat(localStorage.getItem('hourlyWage')), now=new Date(); let totalMs=0; data.forEach((e,i)=>{ if(e.action==='start'&&data[i+1]&&data[i+1].action==='stop'){ const sd=new Date(e.time), ed=new Date(data[i+1].time); if(sd.getMonth()===now.getMonth()&&sd.getFullYear()===now.getFullYear()) totalMs+=ed-sd; } }); const costDiv=document.getElementById('monthly-cost')||document.createElement('div'); costDiv.id='monthly-cost'; if(!isNaN(wage)){ const hrs=totalMs/3600000, cost=(hrs*wage).toFixed(2), month=now.toLocaleDateString('de-DE',{month:'long',year:'numeric'}); costDiv.textContent=`Gesamt Lohnaufwand für ${month}: ${cost} €`; } else costDiv.textContent='Bitte Stundenlohn einstellen'; if(!document.getElementById('monthly-cost')) list.parentNode.insertBefore(costDiv,list);
+      data.forEach((e,i)=>{ if(e.action==='start'&&data[i+1]&&data[i+1].action==='stop'){ const sd=new Date(e.time), ed=new Date(data[i+1].time), h=Math.floor((ed-sd)/3600000), m=Math.floor(((ed-sd)%3600000)/60000); const entry=document.createElement('div'); entry.className='history-entry'; entry.innerHTML=`<div class="history-date">${sd.toLocaleDateString('de-DE',{weekday:'long',year:'numeric',month:'2-digit',day:'2-digit'})}</div><div class="history-time">${sd.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})} - ${ed.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})} Uhr (${h}h ${m}m)</div><details><summary>Tasks anzeigen</summary><ul>${data[i+1].statuses.map(ts=>`<li style="color:${ts.done?'green':'red'}">${ts.title}</li>`).join('')}</ul></details>`; list.appendChild(entry); } }); }
+  </script>
+</body>
+</html>
